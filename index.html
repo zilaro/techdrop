@@ -1,0 +1,5077 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+  <meta name="theme-color" content="#05070d">
+  <meta name="description" content="TechDrop — local electronics and custom tech sourcing around Nassau County.">
+
+  <title>TechDrop — Nassau County</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root {
+      --bg:#05070d;
+      --surface:rgba(17,24,39,.78);
+      --surface-strong:#121a2b;
+      --line:rgba(255,255,255,.09);
+      --text:#f8fafc;
+      --muted:#98a6bb;
+      --cyan:#00f2fe;
+      --blue:#4facfe;
+      --danger:#fb7185;
+      --success:#34d399;
+      --warning:#fbbf24;
+      --shadow:0 24px 60px rgba(0,0,0,.34);
+    }
+
+    * {
+      box-sizing:border-box;
+    }
+
+    html {
+      scroll-behavior:smooth;
+    }
+
+    body {
+      margin:0;
+      min-width:320px;
+      color:var(--text);
+      font:500 15px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+
+      background:
+        radial-gradient(
+          circle at 10% -5%,
+          rgba(0,242,254,.12),
+          transparent 29rem
+        ),
+        radial-gradient(
+          circle at 93% 42%,
+          rgba(79,172,254,.11),
+          transparent 27rem
+        ),
+        var(--bg);
+
+      padding-bottom:calc(84px + env(safe-area-inset-bottom));
+    }
+
+    body.loading {
+      overflow:hidden;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font:inherit;
+    }
+
+    button {
+      cursor:pointer;
+    }
+
+    button:disabled {
+      cursor:not-allowed;
+      opacity:.55;
+    }
+
+    button:focus-visible,
+    a:focus-visible,
+    input:focus-visible,
+    select:focus-visible,
+    textarea:focus-visible {
+      outline:3px solid rgba(0,242,254,.55);
+      outline-offset:3px;
+    }
+
+    .announcement {
+      min-height:33px;
+      display:grid;
+      place-items:center;
+      padding:7px 16px;
+
+      color:#031018;
+
+      background:
+        linear-gradient(
+          90deg,
+          var(--cyan),
+          var(--blue)
+        );
+
+      font-size:12px;
+      font-weight:900;
+      letter-spacing:.07em;
+      text-align:center;
+      text-transform:uppercase;
+    }
+
+    .site-header {
+      position:sticky;
+      top:0;
+      z-index:20;
+
+      height:70px;
+
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+
+      gap:16px;
+
+      padding:
+        0
+        clamp(16px,5vw,56px);
+
+      border-bottom:1px solid var(--line);
+
+      background:rgba(5,7,13,.78);
+      backdrop-filter:blur(20px);
+    }
+
+    .brand {
+      color:white;
+      text-decoration:none;
+
+      font-size:23px;
+      font-weight:900;
+
+      letter-spacing:-.06em;
+    }
+
+    .brand span {
+      background:
+        linear-gradient(
+          135deg,
+          #fff 30%,
+          var(--cyan)
+        );
+
+      -webkit-background-clip:text;
+      background-clip:text;
+      color:transparent;
+    }
+
+    .location {
+      display:flex;
+      align-items:center;
+      gap:7px;
+
+      padding:7px 11px;
+
+      border:1px solid rgba(0,242,254,.3);
+      border-radius:999px;
+
+      color:var(--cyan);
+      background:rgba(0,242,254,.08);
+
+      font-size:12px;
+      font-weight:800;
+    }
+
+    main {
+      width:min(1120px,100%);
+      margin:auto;
+      padding:0 16px 36px;
+    }
+
+    .view {
+      display:block;
+      scroll-margin-top:76px;
+      padding:36px 0;
+    }
+
+    .view:first-child {
+      padding-top:0;
+    }
+
+    .view + .view {
+      border-top:1px solid var(--line);
+    }
+
+    .hero {
+      padding:48px 8px 28px;
+      max-width:760px;
+      text-align:center;
+      margin:auto;
+    }
+
+    .eyebrow {
+      display:inline-flex;
+      gap:7px;
+      align-items:center;
+
+      padding:6px 10px;
+
+      border:1px solid var(--line);
+      border-radius:999px;
+
+      color:var(--cyan);
+
+      font-size:11px;
+      font-weight:900;
+
+      letter-spacing:.1em;
+      text-transform:uppercase;
+
+      background:rgba(0,242,254,.06);
+    }
+
+    .hero h1 {
+      margin:14px 0 9px;
+
+      font-size:clamp(36px,7vw,66px);
+      line-height:1.02;
+
+      letter-spacing:-.065em;
+    }
+
+    .gradient {
+      background:
+        linear-gradient(
+          135deg,
+          var(--cyan),
+          var(--blue)
+        );
+
+      -webkit-background-clip:text;
+      background-clip:text;
+      color:transparent;
+    }
+
+    .hero p {
+      margin:0 auto;
+
+      color:var(--muted);
+
+      max-width:590px;
+
+      font-size:16px;
+    }
+
+    .section-head {
+      display:flex;
+      align-items:end;
+      justify-content:space-between;
+
+      gap:16px;
+
+      margin:25px 0 14px;
+    }
+
+    .section-head h2 {
+      margin:0;
+
+      font-size:25px;
+
+      letter-spacing:-.04em;
+    }
+
+    .section-head p {
+      margin:3px 0 0;
+
+      color:var(--muted);
+
+      font-size:13px;
+    }
+
+    .chip-row {
+      display:flex;
+
+      gap:9px;
+
+      overflow:auto;
+
+      padding:4px 0 12px;
+
+      scrollbar-width:none;
+    }
+
+    .chip-row::-webkit-scrollbar {
+      display:none;
+    }
+
+    .chip {
+      flex:0 0 auto;
+
+      border:1px solid var(--line);
+      border-radius:999px;
+
+      padding:9px 15px;
+
+      background:var(--surface);
+      color:var(--muted);
+
+      font-size:13px;
+      font-weight:800;
+    }
+
+    .chip.active {
+      color:#031018;
+
+      background:
+        linear-gradient(
+          135deg,
+          var(--cyan),
+          var(--blue)
+        );
+
+      border-color:transparent;
+
+      box-shadow:
+        0 0 19px rgba(0,242,254,.27);
+    }
+
+    .grid {
+      display:grid;
+
+      grid-template-columns:
+        repeat(
+          auto-fit,
+          minmax(245px,1fr)
+        );
+
+      gap:14px;
+    }
+
+    .product {
+      display:flex;
+      flex-direction:column;
+
+      overflow:hidden;
+
+      min-height:310px;
+
+      padding:16px;
+
+      border:1px solid var(--line);
+      border-radius:20px;
+
+      background:var(--surface);
+
+      box-shadow:
+        0 8px 28px rgba(0,0,0,.15);
+
+      transition:.2s;
+    }
+
+    .product:hover {
+      transform:translateY(-3px);
+
+      border-color:
+        rgba(0,242,254,.35);
+
+      background:
+        rgba(25,35,55,.86);
+    }
+
+    .product-art {
+      height:150px;
+
+      overflow:hidden;
+
+      margin:-16px -16px 14px;
+
+      background:#111d2e;
+    }
+
+    .product-art img {
+      display:block;
+
+      width:100%;
+      height:100%;
+
+      object-fit:cover;
+    }
+
+    .product-art.emoji-art {
+      display:grid;
+      place-items:center;
+
+      background:
+        linear-gradient(
+          135deg,
+          rgba(17,29,46,.96),
+          rgba(10,18,31,.96)
+        );
+    }
+
+    .product-art.emoji-art .product-emoji {
+      font-size:64px;
+      line-height:1;
+
+      filter:
+        drop-shadow(
+          0 8px 20px rgba(0,0,0,.28)
+        );
+    }
+
+    .product-top,
+    .product-bottom {
+      display:flex;
+
+      align-items:center;
+      justify-content:space-between;
+
+      gap:10px;
+    }
+
+    .badge,
+    .stock {
+      font-size:10px;
+      font-weight:900;
+
+      letter-spacing:.06em;
+      text-transform:uppercase;
+    }
+
+    .badge {
+      padding:4px 8px;
+
+      border:
+        1px solid
+        rgba(0,242,254,.3);
+
+      border-radius:999px;
+
+      color:var(--cyan);
+
+      background:
+        rgba(0,242,254,.09);
+    }
+
+    .stock {
+      color:var(--success);
+    }
+
+    .stock.out {
+      color:var(--danger);
+    }
+
+    .product h3 {
+      margin:12px 0 4px;
+
+      font-size:17px;
+
+      letter-spacing:-.025em;
+    }
+
+    .specs {
+      margin:0;
+
+      color:var(--muted);
+
+      font-size:12px;
+    }
+
+    .product-bottom {
+      margin-top:auto;
+
+      padding-top:14px;
+
+      border-top:1px solid var(--line);
+    }
+
+    .price {
+      font-size:20px;
+      font-weight:900;
+    }
+
+    .primary,
+    .secondary,
+    .danger {
+      border-radius:11px;
+
+      padding:10px 14px;
+
+      font-weight:900;
+      font-size:13px;
+    }
+
+    .primary {
+      color:#031018;
+
+      border:0;
+
+      background:
+        linear-gradient(
+          135deg,
+          var(--cyan),
+          var(--blue)
+        );
+
+      box-shadow:
+        0 0 16px rgba(0,242,254,.23);
+    }
+
+    .secondary {
+      color:var(--text);
+
+      background:
+        rgba(255,255,255,.08);
+
+      border:1px solid var(--line);
+    }
+
+    .danger {
+      color:#fff;
+
+      background:
+        rgba(251,113,133,.16);
+
+      border:
+        1px solid
+        rgba(251,113,133,.35);
+    }
+
+    .primary:hover,
+    .secondary:hover,
+    .danger:hover {
+      filter:brightness(1.12);
+    }
+
+    .process-grid,
+    .settings-grid {
+      display:grid;
+
+      grid-template-columns:
+        repeat(3,1fr);
+
+      gap:14px;
+    }
+
+    .settings-grid {
+      grid-template-columns:1fr 1fr;
+    }
+
+    .panel {
+      padding:19px;
+
+      border:1px solid var(--line);
+      border-radius:18px;
+
+      background:var(--surface);
+
+      box-shadow:
+        0 10px 30px rgba(0,0,0,.12);
+    }
+
+    .step-icon {
+      font-size:27px;
+    }
+
+    .step-number {
+      margin-top:10px;
+
+      color:var(--cyan);
+
+      font-size:12px;
+      font-weight:900;
+
+      letter-spacing:.09em;
+    }
+
+    .panel h3 {
+      margin:5px 0;
+
+      font-size:17px;
+
+      letter-spacing:-.025em;
+    }
+
+    .panel p {
+      margin:0;
+
+      color:var(--muted);
+
+      font-size:13px;
+    }
+
+    .cash-required {
+      margin-top:14px;
+
+      padding:12px 14px;
+
+      border:
+        1px solid
+        rgba(0,242,254,.25);
+
+      border-radius:12px;
+
+      color:var(--text);
+
+      background:
+        rgba(0,242,254,.06);
+
+      font-size:12px;
+      font-weight:800;
+    }
+
+    .cash-required strong {
+      color:var(--cyan);
+    }
+
+    .request-layout {
+      display:grid;
+
+      grid-template-columns:
+        minmax(0,1.1fr)
+        minmax(280px,.9fr);
+
+      gap:18px;
+
+      padding-top:28px;
+    }
+
+    .form-card {
+      padding:clamp(18px,4vw,30px);
+
+      border:1px solid var(--line);
+      border-radius:24px;
+
+      background:var(--surface);
+
+      box-shadow:var(--shadow);
+    }
+
+    .form-card h1 {
+      margin:0;
+
+      font-size:31px;
+
+      letter-spacing:-.05em;
+    }
+
+    .form-card > p {
+      margin:7px 0 23px;
+
+      color:var(--muted);
+    }
+
+    .form-grid {
+      display:grid;
+
+      grid-template-columns:
+        1fr 1fr;
+
+      gap:14px;
+    }
+
+    .field {
+      display:grid;
+
+      gap:6px;
+    }
+
+    .field.full {
+      grid-column:1/-1;
+    }
+
+    .field label {
+      font-size:11px;
+
+      color:var(--muted);
+
+      font-weight:900;
+
+      letter-spacing:.08em;
+
+      text-transform:uppercase;
+    }
+
+    .field input,
+    .field textarea,
+    .field select {
+      width:100%;
+
+      padding:12px 13px;
+
+      border:1px solid var(--line);
+      border-radius:11px;
+
+      color:var(--text);
+
+      background:
+        rgba(3,7,13,.62);
+    }
+
+    .field textarea {
+      min-height:116px;
+      resize:vertical;
+    }
+
+    .form-card .primary {
+      width:100%;
+
+      margin-top:18px;
+
+      padding:13px;
+    }
+
+    .note {
+      margin:12px 0 0;
+
+      color:var(--muted);
+
+      text-align:center;
+
+      font-size:11px;
+    }
+
+    .side-stack {
+      display:grid;
+
+      align-content:start;
+
+      gap:14px;
+    }
+
+    .callout {
+      background:
+        linear-gradient(
+          135deg,
+          rgba(0,242,254,.12),
+          rgba(79,172,254,.08)
+        );
+    }
+
+    .callout h2 {
+      margin:0 0 5px;
+
+      font-size:20px;
+    }
+
+    .callout ul {
+      padding-left:18px;
+
+      margin:13px 0 0;
+
+      color:var(--muted);
+
+      font-size:13px;
+    }
+
+    .callout li + li {
+      margin-top:6px;
+    }
+
+    .payment-check {
+      display:flex;
+
+      align-items:flex-start;
+
+      gap:10px;
+
+      margin-top:14px;
+
+      padding:12px 14px;
+
+      border:1px solid var(--line);
+      border-radius:12px;
+
+      background:
+        rgba(255,255,255,.025);
+    }
+
+    .payment-check input {
+      width:18px;
+      height:18px;
+
+      margin:1px 0 0;
+
+      accent-color:#00f2fe;
+
+      flex:none;
+    }
+
+    .payment-check label {
+      color:var(--muted);
+
+      font-size:12px;
+
+      line-height:1.45;
+
+      cursor:pointer;
+    }
+
+    .setting-row {
+      display:flex;
+
+      align-items:center;
+      justify-content:space-between;
+
+      gap:13px;
+
+      padding:14px 0;
+
+      border-bottom:1px solid var(--line);
+    }
+
+    .setting-row:last-child {
+      border:0;
+
+      padding-bottom:0;
+    }
+
+    .setting-row strong {
+      font-size:14px;
+    }
+
+    .setting-row span {
+      display:block;
+
+      color:var(--muted);
+
+      font-size:12px;
+    }
+
+    .admin-entry {
+      margin-top:18px;
+
+      padding:18px;
+
+      border:
+        1px solid
+        rgba(0,242,254,.25);
+
+      border-radius:16px;
+
+      background:
+        rgba(0,242,254,.055);
+    }
+
+    .admin-entry h3 {
+      margin:0 0 4px;
+    }
+
+    .admin-entry p {
+      margin:0 0 12px;
+    }
+
+    .admin-shell {
+      display:none;
+
+      margin-top:24px;
+    }
+
+    .admin-mode .admin-shell {
+      display:block;
+    }
+
+    .admin-shell > h2 {
+      margin:0 0 4px;
+
+      font-size:27px;
+
+      letter-spacing:-.05em;
+    }
+
+    .admin-shell > p {
+      margin:0 0 16px;
+
+      color:var(--muted);
+    }
+
+    .admin-toolbar {
+      display:flex;
+
+      flex-wrap:wrap;
+
+      gap:9px;
+
+      margin-bottom:14px;
+    }
+
+    .admin-products {
+      display:grid;
+
+      gap:10px;
+    }
+
+    .admin-product {
+      display:grid;
+
+      grid-template-columns:
+        56px
+        minmax(0,1fr)
+        auto
+        auto;
+
+      align-items:center;
+
+      gap:13px;
+
+      padding:12px;
+
+      border:1px solid var(--line);
+      border-radius:15px;
+
+      background:var(--surface);
+    }
+
+    .image-preview {
+      width:42px;
+      height:42px;
+
+      border-radius:10px;
+
+      object-fit:cover;
+
+      background:#111d2e;
+    }
+
+    .admin-product strong {
+      display:block;
+    }
+
+    .admin-product span {
+      font-size:12px;
+
+      color:var(--muted);
+    }
+
+    .admin-edit {
+      display:grid;
+
+      gap:12px;
+
+      margin-top:15px;
+    }
+
+    .admin-edit .form-grid {
+      grid-template-columns:1fr 1fr;
+    }
+
+    .image-mode-row {
+      display:flex;
+
+      gap:8px;
+
+      flex-wrap:wrap;
+    }
+
+    .image-mode {
+      flex:1 1 140px;
+
+      position:relative;
+    }
+
+    .image-mode input {
+      position:absolute;
+
+      opacity:0;
+
+      pointer-events:none;
+    }
+
+    .image-mode label {
+      display:flex;
+
+      align-items:center;
+      justify-content:center;
+
+      gap:8px;
+
+      min-height:44px;
+
+      padding:10px 12px;
+
+      border:1px solid var(--line);
+      border-radius:11px;
+
+      color:var(--muted);
+
+      background:
+        rgba(3,7,13,.62);
+
+      font-size:12px;
+      font-weight:900;
+
+      cursor:pointer;
+    }
+
+    .image-mode input:checked + label {
+      color:var(--cyan);
+
+      border-color:
+        rgba(0,242,254,.4);
+
+      background:
+        rgba(0,242,254,.08);
+    }
+
+    .image-preview-large {
+      display:grid;
+
+      place-items:center;
+
+      width:100%;
+      height:150px;
+
+      margin-top:10px;
+
+      overflow:hidden;
+
+      border:1px solid var(--line);
+      border-radius:14px;
+
+      background:#111d2e;
+    }
+
+    .image-preview-large img {
+      width:100%;
+      height:100%;
+
+      object-fit:cover;
+    }
+
+    .image-preview-large .emoji-preview {
+      font-size:58px;
+    }
+
+    .sync-status {
+      display:inline-flex;
+
+      align-items:center;
+
+      gap:7px;
+
+      padding:6px 10px;
+
+      border:1px solid var(--line);
+      border-radius:999px;
+
+      color:var(--muted);
+
+      font-size:11px;
+      font-weight:800;
+    }
+
+    .sync-dot {
+      width:7px;
+      height:7px;
+
+      border-radius:50%;
+
+      background:var(--warning);
+    }
+
+    .sync-status.online {
+      color:var(--success);
+    }
+
+    .sync-status.online .sync-dot {
+      background:var(--success);
+
+      box-shadow:
+        0 0 8px rgba(52,211,153,.65);
+    }
+
+    .modal-actions {
+      display:flex;
+
+      justify-content:flex-end;
+
+      gap:9px;
+
+      margin-top:19px;
+    }
+
+    .footer {
+      position:relative;
+
+      margin:38px 0 8px;
+
+      padding:20px;
+
+      text-align:center;
+
+      color:var(--muted);
+
+      font-size:12px;
+    }
+
+    .admin-trigger {
+      position:absolute;
+
+      bottom:16px;
+
+      margin-left:8px;
+
+      width:26px;
+      height:26px;
+
+      border:1px dashed transparent;
+      border-radius:7px;
+
+      background:transparent;
+
+      color:transparent;
+    }
+
+    .admin-mode .admin-trigger {
+      position:static;
+
+      margin-left:8px;
+
+      width:auto;
+      height:auto;
+
+      padding:6px 9px;
+
+      border-color:
+        rgba(0,242,254,.55);
+
+      color:var(--cyan);
+
+      font-size:11px;
+      font-weight:900;
+
+      background:
+        rgba(0,242,254,.09);
+    }
+
+    .tabbar {
+      position:fixed;
+
+      z-index:30;
+
+      bottom:0;
+      left:0;
+      right:0;
+
+      height:
+        calc(
+          72px +
+          env(safe-area-inset-bottom)
+        );
+
+      display:flex;
+
+      justify-content:center;
+
+      border-top:1px solid var(--line);
+
+      background:
+        rgba(5,7,13,.88);
+
+      backdrop-filter:blur(22px);
+    }
+
+    .tabs {
+      display:grid;
+
+      grid-template-columns:
+        repeat(
+          4,
+          minmax(74px,130px)
+        );
+
+      width:min(560px,100%);
+
+      padding:
+        7px
+        8px
+        calc(
+          7px +
+          env(safe-area-inset-bottom)
+        );
+
+      gap:2px;
+    }
+
+    .tab {
+      display:grid;
+
+      place-items:center;
+
+      align-content:center;
+
+      gap:2px;
+
+      border:0;
+      border-radius:12px;
+
+      color:var(--muted);
+
+      background:transparent;
+
+      font-size:10px;
+      font-weight:800;
+    }
+
+    .tab .tab-icon {
+      font-size:19px;
+      line-height:1;
+    }
+
+    .tab.active {
+      color:var(--cyan);
+
+      background:
+        rgba(0,242,254,.08);
+    }
+
+    dialog {
+      width:min(
+        460px,
+        calc(100% - 32px)
+      );
+
+      border:
+        1px solid
+        rgba(0,242,254,.37);
+
+      border-radius:21px;
+
+      padding:0;
+
+      color:var(--text);
+
+      background:#101827;
+
+      box-shadow:var(--shadow);
+    }
+
+    dialog::backdrop {
+      background:
+        rgba(1,4,10,.75);
+
+      backdrop-filter:blur(8px);
+    }
+
+    .modal {
+      padding:25px;
+    }
+
+    .modal h2 {
+      margin:0;
+
+      font-size:23px;
+
+      letter-spacing:-.04em;
+    }
+
+    .modal p {
+      color:var(--muted);
+
+      font-size:13px;
+    }
+
+    .dialog-icon {
+      display:grid;
+
+      place-items:center;
+
+      width:48px;
+      height:48px;
+
+      margin:0 0 14px;
+
+      border:
+        1px solid
+        rgba(0,242,254,.4);
+
+      border-radius:16px;
+
+      color:var(--cyan);
+
+      background:
+        rgba(0,242,254,.1);
+
+      font-size:24px;
+    }
+
+    .dialog-icon.danger-icon {
+      border-color:
+        rgba(251,113,133,.45);
+
+      color:var(--danger);
+
+      background:
+        rgba(251,113,133,.12);
+    }
+
+    .hidden {
+      display:none!important;
+    }
+
+    .toast {
+      position:fixed;
+
+      z-index:100;
+
+      left:50%;
+      bottom:94px;
+
+      transform:
+        translate(-50%,14px);
+
+      padding:10px 14px;
+
+      border:
+        1px solid
+        rgba(0,242,254,.35);
+
+      border-radius:999px;
+
+      color:var(--text);
+
+      background:#142036;
+
+      box-shadow:var(--shadow);
+
+      font-size:13px;
+      font-weight:800;
+
+      opacity:0;
+
+      pointer-events:none;
+
+      transition:.24s;
+    }
+
+    .toast.show {
+      opacity:1;
+
+      transform:
+        translate(-50%,0);
+    }
+
+    .loading-screen {
+      position:fixed;
+
+      z-index:200;
+
+      inset:0;
+
+      display:grid;
+
+      place-items:center;
+
+      background:
+        radial-gradient(
+          circle at center,
+          rgba(0,242,254,.1),
+          transparent 30rem
+        ),
+        var(--bg);
+
+      transition:.25s;
+    }
+
+    .loading-screen.hidden {
+      opacity:0;
+
+      pointer-events:none;
+    }
+
+    .loading-box {
+      text-align:center;
+    }
+
+    .loading-logo {
+      font-size:32px;
+
+      font-weight:900;
+
+      letter-spacing:-.06em;
+    }
+
+    .loading-logo span {
+      color:var(--cyan);
+    }
+
+    .loading-text {
+      margin-top:7px;
+
+      color:var(--muted);
+
+      font-size:12px;
+    }
+
+    @media(max-width:780px) {
+      .process-grid,
+      .settings-grid,
+      .request-layout {
+        grid-template-columns:1fr;
+      }
+    }
+
+    @media(max-width:680px) {
+      .form-grid,
+      .admin-edit .form-grid {
+        grid-template-columns:1fr;
+      }
+
+      .field.full {
+        grid-column:auto;
+      }
+
+      .hero {
+        padding-top:34px;
+      }
+
+      .site-header {
+        height:63px;
+      }
+
+      .location {
+        font-size:10px;
+      }
+
+      .admin-product {
+        grid-template-columns:
+          42px
+          minmax(0,1fr);
+      }
+
+      .admin-product .secondary,
+      .admin-product .danger {
+        grid-column:2;
+
+        min-width:82px;
+
+        justify-self:center;
+
+        text-align:center;
+      }
+    }
+  </style>
+</head>
+
+<body class="loading">
+
+  <!-- ============================================================
+       LOADING SCREEN
+       ============================================================ -->
+
+  <div class="loading-screen" id="loadingScreen">
+    <div class="loading-box">
+      <div class="loading-logo">
+        Tech<span>Drop</span>
+      </div>
+
+      <div class="loading-text">
+        Loading inventory…
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ============================================================
+       ANNOUNCEMENT
+       ============================================================ -->
+
+  <div
+    class="announcement"
+    id="announcement"
+  >
+    ✦ Nassau County, NY — direct drop-offs available
+  </div>
+
+
+  <!-- ============================================================
+       HEADER
+       ============================================================ -->
+
+  <header class="site-header">
+
+    <a
+      class="brand"
+      href="#drops"
+      data-nav="drops"
+    >
+      Tech<span>Drop</span>
+    </a>
+
+    <div class="location">
+      ⌁
+      <span id="locationLabel">
+        Nassau, NY
+      </span>
+    </div>
+
+  </header>
+
+
+  <!-- ============================================================
+       MAIN
+       ============================================================ -->
+
+  <main>
+
+    <!-- ==========================================================
+         DROPS
+         ========================================================== -->
+
+    <section
+      class="view"
+      id="drops"
+    >
+
+      <div class="hero">
+
+        <span class="eyebrow">
+          ✦ Fresh inventory, no nonsense
+        </span>
+
+        <h1>
+          Tech you want.<br>
+          <span class="gradient">
+            Prices you’ll like.
+          </span>
+        </h1>
+
+        <p>
+          Premium electronics and custom hardware sourcing,
+          delivered around Nassau County. 
+          (CUSTOM SOURCING AVAILABLE. LET US KNOW IN REQUEST BOX)
+        </p>
+
+      </div>
+
+
+      <div
+        class="chip-row"
+        id="categoryChips"
+      ></div>
+
+
+      <div class="section-head">
+
+        <div>
+
+          <h2>
+            Featured inventory
+          </h2>
+
+          <p id="inventoryCount">
+            Loading inventory…
+          </p>
+
+        </div>
+
+        <div
+          class="sync-status"
+          id="syncStatus"
+        >
+          <span class="sync-dot"></span>
+          <span id="syncStatusText">
+            Connecting
+          </span>
+        </div>
+
+      </div>
+
+
+      <div
+        class="grid"
+        id="productGrid"
+      ></div>
+
+    </section>
+
+
+    <!-- ==========================================================
+         PROCESS
+         ========================================================== -->
+
+    <section
+      class="view"
+      id="process"
+    >
+
+      <div class="hero">
+
+        <span class="eyebrow">
+          ↗ Simple from start to drop-off
+        </span>
+
+        <h1>
+          How a
+          <span class="gradient">
+            TechDrop
+          </span>
+          works.
+        </h1>
+
+        <p>
+          Tell us what you need, confirm the details,
+          and get your tech without the usual runaround.
+        </p>
+
+      </div>
+
+
+      <div class="process-grid">
+
+        <article class="panel">
+
+          <div class="step-icon">
+            ◌
+          </div>
+
+          <div class="step-number">
+            01 / REQUEST
+          </div>
+
+          <h3>
+            Send your request
+          </h3>
+
+          <p>
+            Choose an item from inventory or describe
+            something custom you want us to source.
+          </p>
+
+        </article>
+
+
+        <article class="panel">
+
+          <div class="step-icon">
+            ⌁
+          </div>
+
+          <div class="step-number">
+            02 / CONFIRM
+          </div>
+
+          <h3>
+            We verify everything
+          </h3>
+
+          <p>
+            We confirm availability, condition, final price,
+            and a drop-off window with you directly.
+          </p>
+
+          <div class="cash-required">
+            <strong>
+              Cash is required upfront.
+            </strong>
+
+            Payment must be ready before the handoff
+            is completed.
+          </div>
+
+        </article>
+
+
+        <article class="panel">
+
+          <div class="step-icon">
+            ✦
+          </div>
+
+          <div class="step-number">
+            03 / DROP
+          </div>
+
+          <h3>
+            Get your tech
+          </h3>
+
+          <p>
+            We coordinate a convenient local handoff
+            within 5 days max.
+          </p>
+
+        </article>
+
+      </div>
+
+    </section>
+
+
+    <!-- ==========================================================
+         REQUEST
+         ========================================================== -->
+
+    <section
+      class="view"
+      id="request"
+    >
+
+      <div class="request-layout">
+
+        <form
+          class="form-card"
+          id="orderForm"
+          action="https://formspree.io/f/mkjwayrj"
+          method="POST"
+        >
+
+          <h1>
+            Request / Order
+          </h1>
+
+          <p>
+            Send the details. We’ll confirm availability
+            and timing before anything is final.
+          </p>
+
+
+          <div class="form-grid">
+
+            <div class="field">
+
+              <label for="name">
+                Your name
+              </label>
+
+              <input
+                id="name"
+                name="name"
+                required
+                autocomplete="name"
+                placeholder="Your name"
+              >
+
+            </div>
+
+
+            <div class="field">
+
+              <label for="contact">
+                Phone, email, or Snapchat
+              </label>
+
+              <input
+                id="contact"
+                name="contact"
+                required
+                placeholder="Best way to reach you"
+              >
+
+            </div>
+
+
+            <div class="field">
+
+              <label for="requestType">
+                I’m looking for
+              </label>
+
+              <select
+                id="requestType"
+                name="request_type"
+              >
+
+                <option>
+                  Available inventory
+                </option>
+
+                <option>
+                  Custom sourcing
+                </option>
+
+                <option>
+                  Question / other
+                </option>
+
+              </select>
+
+            </div>
+
+
+            <div class="field">
+
+              <label for="budget">
+                Budget (optional)
+              </label>
+
+              <input
+                id="budget"
+                name="budget"
+                placeholder="e.g. $400"
+              >
+
+            </div>
+
+
+            <div class="field full">
+
+              <label for="orderDetails">
+                What do you need?
+              </label>
+
+              <textarea
+                id="orderDetails"
+                name="order_details"
+                required
+                placeholder="Item, preferred condition, color, storage, or anything else that matters."
+              ></textarea>
+
+            </div>
+
+          </div>
+
+
+          <div class="payment-check">
+
+            <input
+              id="cashAgreement"
+              name="cash_required_upfront"
+              value="Agreed — cash is required upfront"
+              type="checkbox"
+              required
+            >
+
+            <label for="cashAgreement">
+
+              I understand that
+              <strong>
+                cash is required upfront
+              </strong>
+              for an order once TechDrop confirms
+              the final price and availability. NO REFUNDS 
+              ONCE CASH IS IN HAND
+
+            </label>
+
+          </div>
+
+
+          <button
+            class="primary"
+            type="submit"
+          >
+            Send request
+          </button>
+
+
+          <p class="note">
+            Your information is only used to respond to your request.
+          </p>
+
+        </form>
+
+
+        <aside class="side-stack">
+
+          <div class="panel callout">
+
+            <h2>
+              Local, clear, direct.
+            </h2>
+
+            <p>
+              Every order is confirmed by a real person.
+            </p>
+
+            <ul>
+
+              <li>
+                Condition and compatibility checked
+              </li>
+
+              <li>
+                Final price confirmed before drop-off
+              </li>
+
+              <li>
+                Local Nassau County coordination
+              </li>
+
+            </ul>
+
+          </div>
+
+
+          <div class="panel">
+
+            <h3>
+              Looking for a specific model?
+            </h3>
+
+            <p>
+              Use “Custom sourcing” and include the device,
+              specs, condition, and your target budget.
+            </p>
+
+          </div>
+
+        </aside>
+
+      </div>
+
+    </section>
+
+
+    <!-- ==========================================================
+         SETTINGS
+         ========================================================== -->
+
+    <section
+      class="view"
+      id="settings"
+    >
+
+      <div class="hero">
+
+        <span class="eyebrow">
+          ⚙ Your portal preferences
+        </span>
+
+        <h1>
+          Settings that stay
+          <span class="gradient">
+            out of your way.
+          </span>
+        </h1>
+
+      </div>
+
+
+      <div class="settings-grid">
+
+        <article class="panel">
+
+          <h3>
+            Service area
+          </h3>
+
+
+          <div class="setting-row">
+
+            <div>
+
+              <strong id="serviceArea">
+                Nassau County, NY
+              </strong>
+
+              <span>
+                Direct handoff availability.
+              </span>
+
+            </div>
+
+          </div>
+
+
+          <div class="setting-row">
+
+            <div>
+
+              <strong>
+                Order method
+              </strong>
+
+              <span>
+                Request first, details confirmed directly.
+              </span>
+
+            </div>
+
+          </div>
+
+        </article>
+
+
+        <article class="panel">
+
+          <h3>
+            About TechDrop
+          </h3>
+
+          <p>
+            A focused local tech portal for quality inventory
+            and tailored sourcing.
+          </p>
+
+
+          <div class="admin-entry">
+
+            <h3>
+              Staff
+            </h3>
+
+            <p>
+              ...
+            </p>
+
+            <button
+              class="secondary"
+              id="openAdmin"
+            >
+              ...
+            </button>
+
+          </div>
+
+        </article>
+
+      </div>
+
+
+      <!-- ========================================================
+           ADMIN
+           ======================================================== -->
+
+      <section class="admin-shell">
+
+        <h2>
+          Admin workspace
+        </h2>
+
+        <p>
+          Changes made here are stored in Supabase and
+          are shared across devices.
+        </p>
+
+
+        <div class="admin-toolbar">
+
+          <button
+            class="primary"
+            id="newProduct"
+          >
+            + Add inventory
+          </button>
+
+          <button
+            class="secondary"
+            id="editStore"
+          >
+            Edit storefront
+          </button>
+
+          <button
+            class="secondary"
+            id="exitAdmin"
+          >
+            Save &amp; exit admin
+          </button>
+
+        </div>
+
+
+        <div
+          class="admin-products"
+          id="adminProducts"
+        ></div>
+
+
+        <!-- ======================================================
+             PRODUCT EDITOR
+             ====================================================== -->
+
+        <form
+          class="form-card admin-edit hidden"
+          id="productEditor"
+        >
+
+          <h3 id="editorTitle">
+            Add inventory
+          </h3>
+
+          <input
+            type="hidden"
+            id="editingId"
+          >
+
+
+          <div class="form-grid">
+
+            <div class="field">
+
+              <label for="editName">
+                Item name
+              </label>
+
+              <input
+                id="editName"
+                required
+              >
+
+            </div>
+
+
+            <div class="field">
+
+              <label for="editPrice">
+                Price
+              </label>
+
+              <input
+                id="editPrice"
+                required
+                placeholder="$399"
+              >
+
+            </div>
+
+
+            <div class="field">
+
+              <label for="editCategory">
+                Category
+              </label>
+
+              <select id="editCategory">
+
+                <option value="phones">
+                  Phones
+                </option>
+
+                <option value="computers">
+                  Computers
+                </option>
+
+                <option value="audio">
+                  Audio
+                </option>
+
+                <option value="accessories">
+                  Accessories
+                </option>
+
+              </select>
+
+            </div>
+
+
+            <div class="field">
+
+              <label for="editBadge">
+                Badge
+              </label>
+
+              <input
+                id="editBadge"
+                required
+                placeholder="Featured"
+              >
+
+            </div>
+
+
+            <div class="field">
+
+              <label for="editStock">
+                Availability
+              </label>
+
+              <select id="editStock">
+
+                <option value="in">
+                  In stock
+                </option>
+
+                <option value="out">
+                  Out of stock
+                </option>
+
+              </select>
+
+            </div>
+
+
+            <div class="field">
+
+              <label for="editEmoji">
+                Default emoji
+              </label>
+
+              <input
+                id="editEmoji"
+                maxlength="4"
+                placeholder="📱"
+              >
+
+            </div>
+
+
+            <div class="field full">
+
+              <label>
+                Product image
+              </label>
+
+
+              <div class="image-mode-row">
+
+                <div class="image-mode">
+
+                  <input
+                    type="radio"
+                    name="imageMode"
+                    id="imageModeUrl"
+                    value="url"
+                    checked
+                  >
+
+                  <label for="imageModeUrl">
+                    🖼️ Image URL
+                  </label>
+
+                </div>
+
+
+                <div class="image-mode">
+
+                  <input
+                    type="radio"
+                    name="imageMode"
+                    id="imageModeEmoji"
+                    value="emoji"
+                  >
+
+                  <label for="imageModeEmoji">
+                    ✦ Emoji fallback
+                  </label>
+
+                </div>
+
+              </div>
+
+
+              <input
+                id="editImageUrl"
+                placeholder="https://example.com/product.jpg"
+              >
+
+
+              <div
+                class="image-preview-large"
+                id="editorImagePreview"
+              >
+
+                <span
+                  class="emoji-preview"
+                  id="editorEmojiPreview"
+                >
+                  📱
+                </span>
+
+              </div>
+
+            </div>
+
+
+            <div class="field full">
+
+              <label for="editSpecs">
+                Details
+              </label>
+
+              <textarea
+                id="editSpecs"
+                required
+              ></textarea>
+
+            </div>
+
+          </div>
+
+
+          <div class="modal-actions">
+
+            <button
+              type="button"
+              class="secondary"
+              id="cancelEdit"
+            >
+              Cancel
+            </button>
+
+            <button
+              class="primary"
+              type="submit"
+            >
+              Save inventory
+            </button>
+
+          </div>
+
+        </form>
+
+
+        <!-- ======================================================
+             STOREFRONT EDITOR
+             ====================================================== -->
+
+        <form
+          class="form-card admin-edit hidden"
+          id="storeEditor"
+        >
+
+          <h3>
+            Storefront details
+          </h3>
+
+
+          <div class="form-grid">
+
+            <div class="field full">
+
+              <label for="editAnnouncement">
+                Announcement
+              </label>
+
+              <input
+                id="editAnnouncement"
+                required
+              >
+
+            </div>
+
+
+            <div class="field">
+
+              <label for="editLocation">
+                Header location
+              </label>
+
+              <input
+                id="editLocation"
+                required
+              >
+
+            </div>
+
+
+            <div class="field">
+
+              <label for="editArea">
+                Service area
+              </label>
+
+              <input
+                id="editArea"
+                required
+              >
+
+            </div>
+
+          </div>
+
+
+          <div class="modal-actions">
+
+            <button
+              type="button"
+              class="secondary"
+              id="cancelStoreEdit"
+            >
+              Cancel
+            </button>
+
+            <button
+              class="primary"
+              type="submit"
+            >
+              Save storefront
+            </button>
+
+          </div>
+
+        </form>
+
+      </section>
+
+    </section>
+
+
+    <!-- ==========================================================
+         FOOTER
+         ========================================================== -->
+
+    <footer class="footer">
+
+      © TechDrop.
+      Serving Nassau County, NY.
+      All rights reserved.
+
+      <button
+        class="admin-trigger"
+        id="footerAdmin"
+        aria-label="Open store admin"
+      >
+        Save
+      </button>
+
+    </footer>
+
+  </main>
+
+
+  <!-- ============================================================
+       BOTTOM NAVIGATION
+       ============================================================ -->
+
+  <nav class="tabbar">
+
+    <div class="tabs">
+
+      <button
+        class="tab active"
+        data-nav="drops"
+      >
+        <span class="tab-icon">
+          ✦
+        </span>
+
+        <span>
+          Drops
+        </span>
+      </button>
+
+
+      <button
+        class="tab"
+        data-nav="process"
+      >
+        <span class="tab-icon">
+          ↗
+        </span>
+
+        <span>
+          Process
+        </span>
+      </button>
+
+
+      <button
+        class="tab"
+        data-nav="request"
+      >
+        <span class="tab-icon">
+          ◌
+        </span>
+
+        <span>
+          Request / Order
+        </span>
+      </button>
+
+
+      <button
+        class="tab"
+        data-nav="settings"
+      >
+        <span class="tab-icon">
+          ⚙
+        </span>
+
+        <span>
+          Settings
+        </span>
+      </button>
+
+    </div>
+
+  </nav>
+
+
+  <!-- ============================================================
+       ADMIN LOGIN
+       ============================================================ -->
+
+  <dialog id="adminDialog">
+
+    <form
+      class="modal"
+      id="adminLogin"
+    >
+
+      <h2>
+        Settings
+      </h2>
+
+      <p>
+        Enter password staff gave you.
+      </p>
+
+
+      <div class="field">
+
+        <label for="adminPassword">
+          Password
+        </label>
+
+        <input
+          id="adminPassword"
+          type="password"
+          required
+          autocomplete="off"
+        >
+
+      </div>
+
+
+      <p
+        class="hidden"
+        id="loginError"
+        style="color:var(--danger)"
+      >
+        That password doesn’t match.
+      </p>
+
+
+      <div class="modal-actions">
+
+        <button
+          class="secondary"
+          type="button"
+          id="cancelAdmin"
+        >
+          Cancel
+        </button>
+
+        <button
+          class="primary"
+          type="submit"
+        >
+          Continue
+        </button>
+
+      </div>
+
+    </form>
+
+  </dialog>
+
+
+  <!-- ============================================================
+       MESSAGE
+       ============================================================ -->
+
+  <dialog id="messageDialog">
+
+    <div class="modal">
+
+      <div class="dialog-icon">
+        ✦
+      </div>
+
+      <h2 id="messageTitle">
+        Request received
+      </h2>
+
+      <p id="messageText">
+        Thanks — we’ll follow up shortly.
+      </p>
+
+
+      <div class="modal-actions">
+
+        <button
+          class="primary"
+          id="closeMessage"
+        >
+          Done
+        </button>
+
+      </div>
+
+    </div>
+
+  </dialog>
+
+
+  <!-- ============================================================
+       SAVE
+       ============================================================ -->
+
+  <dialog id="saveDialog">
+
+    <div class="modal">
+
+      <div class="dialog-icon">
+        ✓
+      </div>
+
+      <h2 id="saveTitle">
+        Changes saved
+      </h2>
+
+      <p id="saveText">
+        Your storefront is updated.
+      </p>
+
+    </div>
+
+  </dialog>
+
+
+  <!-- ============================================================
+       DELETE
+       ============================================================ -->
+
+  <dialog id="deleteDialog">
+
+    <div class="modal">
+
+      <div class="dialog-icon danger-icon">
+        ×
+      </div>
+
+      <h2>
+        Delete inventory item?
+      </h2>
+
+      <p>
+        This item will be removed from the Drops page.
+      </p>
+
+
+      <div class="modal-actions">
+
+        <button
+          class="secondary"
+          id="cancelDelete"
+        >
+          Keep item
+        </button>
+
+        <button
+          class="danger"
+          id="confirmDelete"
+        >
+          Delete item
+        </button>
+
+      </div>
+
+    </div>
+
+  </dialog>
+
+
+  <!-- ============================================================
+       TOAST
+       ============================================================ -->
+
+  <div
+    class="toast"
+    id="toast"
+    role="status"
+  ></div>
+
+
+  <!-- ============================================================
+       JAVASCRIPT
+       ============================================================ -->
+
+  <script>
+
+    /* ============================================================
+       SUPABASE CONFIGURATION
+       ============================================================ */
+
+    const SUPABASE_URL =
+      'https://jiktsrqbwxuzikvsqttp.supabase.co';
+
+    const SUPABASE_PUBLISHABLE_KEY =
+      'sb_publishable_WPngiggyF0yXlaPI1fG0tw_JJq_Qd24';
+
+    const {
+      createClient
+    } = window.supabase;
+
+    const db = createClient(
+      SUPABASE_URL,
+      SUPABASE_PUBLISHABLE_KEY
+    );
+
+
+    /* ============================================================
+       TEMPORARY ADMIN PASSWORD
+       ============================================================ */
+
+    const ADMIN_PASSWORD =
+      '194&*%^gheig*\\*^&';
+
+
+    /* ============================================================
+       APPLICATION STATE
+       ============================================================ */
+
+    let products = [];
+
+    let storefront = {
+      announcement:
+        '✦ Nassau County, NY — direct drop-offs available',
+
+      location:
+        'Nassau, NY',
+
+      area:
+        'Nassau County, NY'
+    };
+
+    let activeCategory = 'all';
+
+    let admin = false;
+
+    let pendingDeleteId = null;
+
+    let toastTimer = null;
+
+    let saveTimer = null;
+
+
+    /* ============================================================
+       CATEGORY DATA
+       ============================================================ */
+
+    const categoryLabels = {
+
+      all:
+        '✦ All drops',
+
+      phones:
+        '◈ Phones',
+
+      computers:
+        '◫ Computers',
+
+      audio:
+        '◌ Audio',
+
+      accessories:
+        '▣ Accessories'
+
+    };
+
+
+    const categoryEmoji = {
+
+      phones:
+        '📱',
+
+      computers:
+        '💻',
+
+      audio:
+        '🎧',
+
+      accessories:
+        '📦'
+
+    };
+
+
+    /* ============================================================
+       UTILITY
+       ============================================================ */
+
+    function escapeHtml(value) {
+
+      return String(value ?? '')
+        .replace(
+          /[&<>'"]/g,
+          character => ({
+            '&':'&amp;',
+            '<':'&lt;',
+            '>':'&gt;',
+            "'":'&#39;',
+            '"':'&quot;'
+          }[character])
+        );
+
+    }
+
+
+    function emojiForCategory(category) {
+
+      return (
+        categoryEmoji[category] ||
+        '✦'
+      );
+
+    }
+
+
+    function getProductEmoji(product) {
+
+      return (
+        product.emoji ||
+        emojiForCategory(product.category)
+      );
+
+    }
+
+
+    function showLoading(show) {
+
+      const element =
+        document.getElementById(
+          'loadingScreen'
+        );
+
+      if (show) {
+
+        element.classList.remove(
+          'hidden'
+        );
+
+        document.body.classList.add(
+          'loading'
+        );
+
+      } else {
+
+        element.classList.add(
+          'hidden'
+        );
+
+        document.body.classList.remove(
+          'loading'
+        );
+
+      }
+
+    }
+
+
+    function toast(message) {
+
+      const element =
+        document.getElementById(
+          'toast'
+        );
+
+      element.textContent =
+        message;
+
+      element.classList.add(
+        'show'
+      );
+
+      clearTimeout(
+        toastTimer
+      );
+
+      toastTimer =
+        setTimeout(
+          () => {
+
+            element.classList.remove(
+              'show'
+            );
+
+          },
+          2600
+        );
+
+    }
+
+
+    function setSyncStatus(
+      online,
+      text
+    ) {
+
+      const element =
+        document.getElementById(
+          'syncStatus'
+        );
+
+      const label =
+        document.getElementById(
+          'syncStatusText'
+        );
+
+      element.classList.toggle(
+        'online',
+        online
+      );
+
+      label.textContent =
+        text;
+
+    }
+
+
+    /* ============================================================
+       SUPABASE LOAD
+       ============================================================ */
+
+    async function loadStorefront() {
+
+      const {
+        data,
+        error
+      } = await db
+        .from('techdrop_storefront')
+        .select('*')
+        .eq('id', 1)
+        .maybeSingle();
+
+      if (error) {
+
+        console.error(
+          'Storefront error:',
+          error
+        );
+
+        return;
+
+      }
+
+      if (data) {
+
+        storefront = {
+
+          announcement:
+            data.announcement,
+
+          location:
+            data.location,
+
+          area:
+            data.area
+
+        };
+
+      }
+
+    }
+
+
+    async function loadProducts() {
+
+      const {
+        data,
+        error
+      } = await db
+        .from('techdrop_products')
+        .select('*')
+        .order(
+          'sort_order',
+          {
+            ascending:true
+          }
+        )
+        .order(
+          'created_at',
+          {
+            ascending:true
+          }
+        );
+
+      if (error) {
+
+        console.error(
+          'Products error:',
+          error
+        );
+
+        toast(
+          'Could not load inventory.'
+        );
+
+        return;
+
+      }
+
+      products =
+        data || [];
+
+    }
+
+
+    async function loadEverything() {
+
+      showLoading(true);
+
+      setSyncStatus(
+        false,
+        'Connecting'
+      );
+
+      try {
+
+        await Promise.all([
+          loadStorefront(),
+          loadProducts()
+        ]);
+
+        render();
+
+        setSyncStatus(
+          true,
+          'Live'
+        );
+
+      } catch (error) {
+
+        console.error(error);
+
+        setSyncStatus(
+          false,
+          'Offline'
+        );
+
+      } finally {
+
+        showLoading(false);
+
+      }
+
+    }
+
+
+    /* ============================================================
+       RENDER STOREFRONT
+       ============================================================ */
+
+    function renderStorefront() {
+
+      document.getElementById(
+        'announcement'
+      ).textContent =
+        storefront.announcement;
+
+      document.getElementById(
+        'locationLabel'
+      ).textContent =
+        storefront.location;
+
+      document.getElementById(
+        'serviceArea'
+      ).textContent =
+        storefront.area;
+
+    }
+
+
+    /* ============================================================
+       RENDER CATEGORY CHIPS
+       ============================================================ */
+
+    function renderChips() {
+
+      const usedCategories =
+        [
+          ...new Set(
+            products.map(
+              product =>
+                product.category
+            )
+          )
+        ];
+
+      const categories =
+        [
+          'all',
+          ...usedCategories
+        ];
+
+      document.getElementById(
+        'categoryChips'
+      ).innerHTML =
+        categories.map(
+          category => `
+
+            <button
+              class="chip ${
+                category === activeCategory
+                  ? 'active'
+                  : ''
+              }"
+              data-category="${escapeHtml(category)}"
+            >
+              ${
+                categoryLabels[category] ||
+                escapeHtml(category)
+              }
+            </button>
+
+          `
+        ).join('');
+
+    }
+
+
+    /* ============================================================
+       PRODUCT IMAGE HTML
+       ============================================================ */
+
+    function productImageHtml(product) {
+
+      const emoji =
+        escapeHtml(
+          getProductEmoji(product)
+        );
+
+      const image =
+        String(
+          product.image_url || ''
+        ).trim();
+
+      if (image) {
+
+        return `
+
+          <div class="product-art">
+
+            <img
+              src="${escapeHtml(image)}"
+              alt="${escapeHtml(product.name)}"
+              loading="lazy"
+              onerror="this.parentElement.className='product-art emoji-art';this.outerHTML='<span class=\\'product-emoji\\'>${emoji}</span>';"
+            >
+
+          </div>
+
+        `;
+
+      }
+
+      return `
+
+        <div class="product-art emoji-art">
+
+          <span class="product-emoji">
+            ${emoji}
+          </span>
+
+        </div>
+
+      `;
+
+    }
+
+
+    /* ============================================================
+       RENDER PRODUCTS
+       ============================================================ */
+
+    function renderProducts() {
+
+      const items =
+        products.filter(
+          product =>
+            activeCategory === 'all' ||
+            product.category ===
+              activeCategory
+        );
+
+
+      const count =
+        document.getElementById(
+          'inventoryCount'
+        );
+
+
+      count.textContent =
+        `${items.length} ${
+          items.length === 1
+            ? 'item'
+            : 'items'
+        } available to request`;
+
+
+      const grid =
+        document.getElementById(
+          'productGrid'
+        );
+
+
+      if (!items.length) {
+
+        grid.innerHTML = `
+
+          <div class="panel">
+
+            <h3>
+              Nothing in this section yet
+            </h3>
+
+            <p>
+              Try another category.
+            </p>
+
+          </div>
+
+        `;
+
+        return;
+
+      }
+
+
+      grid.innerHTML =
+        items.map(
+          product => `
+
+            <article class="product">
+
+              ${productImageHtml(product)}
+
+              <div class="product-top">
+
+                <span class="badge">
+                  ${escapeHtml(product.badge)}
+                </span>
+
+                <span
+                  class="stock ${
+                    product.stock === 'out'
+                      ? 'out'
+                      : ''
+                  }"
+                >
+                  ${
+                    product.stock === 'out'
+                      ? 'Out of stock'
+                      : 'In stock'
+                  }
+                </span>
+
+              </div>
+
+
+              <h3>
+                ${escapeHtml(product.name)}
+              </h3>
+
+
+              <p class="specs">
+                ${escapeHtml(product.specs)}
+              </p>
+
+
+              <div class="product-bottom">
+
+                <span class="price">
+                  ${escapeHtml(product.price)}
+                </span>
+
+                <button
+                  class="primary request-item"
+                  data-id="${escapeHtml(product.id)}"
+                  ${
+                    product.stock === 'out'
+                      ? 'disabled'
+                      : ''
+                  }
+                >
+                  ${
+                    product.stock === 'out'
+                      ? 'Unavailable'
+                      : 'Request'
+                  }
+                </button>
+
+              </div>
+
+            </article>
+
+          `
+        ).join('');
+
+    }
+
+
+    /* ============================================================
+       RENDER ADMIN PRODUCTS
+       ============================================================ */
+
+    function renderAdmin() {
+
+      document.body.classList.add(
+        'admin-mode'
+      );
+
+
+      const container =
+        document.getElementById(
+          'adminProducts'
+        );
+
+
+      if (!products.length) {
+
+        container.innerHTML = `
+
+          <div class="panel">
+
+            <h3>
+              No inventory yet
+            </h3>
+
+            <p>
+              Click “Add inventory” to create your first product.
+            </p>
+
+          </div>
+
+        `;
+
+        return;
+
+      }
+
+
+      container.innerHTML =
+        products.map(
+          product => {
+
+            const emoji =
+              escapeHtml(
+                getProductEmoji(product)
+              );
+
+            const image =
+              String(
+                product.image_url || ''
+              ).trim();
+
+
+            const preview =
+              image
+                ? `
+
+                  <img
+                    class="image-preview"
+                    src="${escapeHtml(image)}"
+                    alt=""
+                    onerror="this.style.display='none';this.nextElementSibling.style.display='grid';"
+                  >
+
+                  <span
+                    style="
+                      display:none;
+                      place-items:center;
+                      width:42px;
+                      height:42px;
+                      border-radius:10px;
+                      background:#111d2e;
+                      font-size:22px;
+                    "
+                  >
+                    ${emoji}
+                  </span>
+
+                `
+                : `
+
+                  <span
+                    style="
+                      display:grid;
+                      place-items:center;
+                      width:42px;
+                      height:42px;
+                      border-radius:10px;
+                      background:#111d2e;
+                      font-size:22px;
+                    "
+                  >
+                    ${emoji}
+                  </span>
+
+                `;
+
+
+            return `
+
+              <article
+                class="admin-product"
+              >
+
+                <div>
+                  ${preview}
+                </div>
+
+
+                <div>
+
+                  <strong>
+                    ${escapeHtml(product.name)}
+                  </strong>
+
+                  <span>
+                    ${escapeHtml(product.price)}
+                    ·
+                    ${
+                      product.stock === 'in'
+                        ? 'In stock'
+                        : 'Out of stock'
+                    }
+                    ·
+                    ${escapeHtml(product.category)}
+                  </span>
+
+                </div>
+
+
+                <button
+                  class="secondary edit-product"
+                  data-id="${escapeHtml(product.id)}"
+                >
+                  Edit
+                </button>
+
+
+                <button
+                  class="danger remove-product"
+                  data-id="${escapeHtml(product.id)}"
+                >
+                  Delete
+                </button>
+
+              </article>
+
+            `;
+
+          }
+        ).join('');
+
+    }
+
+
+    function render() {
+
+      renderStorefront();
+
+      renderChips();
+
+      renderProducts();
+
+      if (admin) {
+
+        renderAdmin();
+
+      }
+
+    }
+
+
+    /* ============================================================
+       NAVIGATION
+       ============================================================ */
+
+    function nav(view) {
+
+      const section =
+        document.getElementById(
+          view
+        );
+
+      if (!section) return;
+
+
+      section.scrollIntoView({
+        behavior:'smooth',
+        block:'start'
+      });
+
+
+      document
+        .querySelectorAll('[data-nav]')
+        .forEach(
+          element => {
+
+            element.classList.toggle(
+              'active',
+              element.dataset.nav === view
+            );
+
+          }
+        );
+
+    }
+
+
+    /* ============================================================
+       REQUEST PRODUCT
+       ============================================================ */
+
+    function requestItem(id) {
+
+      const product =
+        products.find(
+          item =>
+            item.id === id
+        );
+
+
+      if (!product) return;
+
+
+      document.getElementById(
+        'requestType'
+      ).value =
+        'Available inventory';
+
+
+      document.getElementById(
+        'orderDetails'
+      ).value =
+        `I am interested in requesting: ${product.name} (${product.price}). Please confirm availability and a drop-off schedule.`;
+
+
+      nav('request');
+
+
+      setTimeout(
+        () => {
+
+          document
+            .getElementById('name')
+            .focus();
+
+        },
+        350
+      );
+
+    }
+
+
+    /* ============================================================
+       SAVE POPUP
+       ============================================================ */
+
+    function showSavePopup(
+      title,
+      text
+    ) {
+
+      const dialog =
+        document.getElementById(
+          'saveDialog'
+        );
+
+
+      document.getElementById(
+        'saveTitle'
+      ).textContent =
+        title;
+
+
+      document.getElementById(
+        'saveText'
+      ).textContent =
+        text;
+
+
+      if (!dialog.open) {
+
+        dialog.showModal();
+
+      }
+
+
+      clearTimeout(
+        saveTimer
+      );
+
+
+      saveTimer =
+        setTimeout(
+          () => {
+
+            if (dialog.open) {
+
+              dialog.close();
+
+            }
+
+          },
+          1700
+        );
+
+    }
+
+
+    /* ============================================================
+       SAVE PRODUCT TO SUPABASE
+       ============================================================ */
+
+    async function saveProduct(product) {
+
+      const {
+        data,
+        error
+      } = await db
+        .from('techdrop_products')
+        .upsert(
+          product,
+          {
+            onConflict:'id'
+          }
+        )
+        .select()
+        .single();
+
+
+      if (error) {
+
+        console.error(
+          'Save product error:',
+          error
+        );
+
+        throw error;
+
+      }
+
+
+      return data;
+
+    }
+
+
+    /* ============================================================
+       DELETE PRODUCT
+       ============================================================ */
+
+    async function deleteProduct(id) {
+
+      const {
+        error
+      } = await db
+        .from('techdrop_products')
+        .delete()
+        .eq('id', id);
+
+
+      if (error) {
+
+        console.error(
+          'Delete product error:',
+          error
+        );
+
+        throw error;
+
+      }
+
+    }
+
+
+    /* ============================================================
+       SAVE STOREFRONT
+       ============================================================ */
+
+    async function saveStorefront() {
+
+      const {
+        data,
+        error
+      } = await db
+        .from('techdrop_storefront')
+        .upsert(
+          {
+            id:1,
+
+            announcement:
+              storefront.announcement,
+
+            location:
+              storefront.location,
+
+            area:
+              storefront.area,
+
+            updated_at:
+              new Date().toISOString()
+
+          },
+          {
+            onConflict:'id'
+          }
+        )
+        .select()
+        .single();
+
+
+      if (error) {
+
+        console.error(
+          'Storefront save error:',
+          error
+        );
+
+        throw error;
+
+      }
+
+
+      if (data) {
+
+        storefront = {
+
+          announcement:
+            data.announcement,
+
+          location:
+            data.location,
+
+          area:
+            data.area
+
+        };
+
+      }
+
+    }
+
+
+    /* ============================================================
+       PRODUCT EDITOR
+       ============================================================ */
+
+    function openEditor(product) {
+
+      document.getElementById(
+        'storeEditor'
+      ).classList.add(
+        'hidden'
+      );
+
+
+      const form =
+        document.getElementById(
+          'productEditor'
+        );
+
+
+      form.classList.remove(
+        'hidden'
+      );
+
+
+      document.getElementById(
+        'editorTitle'
+      ).textContent =
+        product
+          ? 'Edit inventory'
+          : 'Add inventory';
+
+
+      document.getElementById(
+        'editingId'
+      ).value =
+        product
+          ? product.id
+          : '';
+
+
+      document.getElementById(
+        'editName'
+      ).value =
+        product?.name || '';
+
+
+      document.getElementById(
+        'editPrice'
+      ).value =
+        product?.price || '';
+
+
+      document.getElementById(
+        'editCategory'
+      ).value =
+        product?.category ||
+        'phones';
+
+
+      document.getElementById(
+        'editEmoji'
+      ).value =
+        product?.emoji || '';
+
+
+      document.getElementById(
+        'editBadge'
+      ).value =
+        product?.badge ||
+        'Fresh drop';
+
+
+      document.getElementById(
+        'editStock'
+      ).value =
+        product?.stock ||
+        'in';
+
+
+      document.getElementById(
+        'editSpecs'
+      ).value =
+        product?.specs || '';
+
+
+      document.getElementById(
+        'editImageUrl'
+      ).value =
+        product?.image_url || '';
+
+
+      const imageMode =
+        product?.image_url
+          ? 'url'
+          : 'emoji';
+
+
+      document.querySelector(
+        `input[name="imageMode"][value="${imageMode}"]`
+      ).checked = true;
+
+
+      updateEditorPreview();
+
+
+      form.scrollIntoView({
+        behavior:'smooth',
+        block:'start'
+      });
+
+    }
+
+
+    /* ============================================================
+       IMAGE PREVIEW
+       ============================================================ */
+
+    function updateEditorPreview() {
+
+      const mode =
+        document.querySelector(
+          'input[name="imageMode"]:checked'
+        )?.value ||
+        'url';
+
+
+      const url =
+        document.getElementById(
+          'editImageUrl'
+        ).value.trim();
+
+
+      const emoji =
+        document.getElementById(
+          'editEmoji'
+        ).value.trim() ||
+        emojiForCategory(
+          document.getElementById(
+            'editCategory'
+          ).value
+        );
+
+
+      const preview =
+        document.getElementById(
+          'editorImagePreview'
+        );
+
+
+      if (
+        mode === 'url' &&
+        url
+      ) {
+
+        preview.innerHTML = `
+
+          <img
+            src="${escapeHtml(url)}"
+            alt="Product preview"
+            onerror="
+              this.style.display='none';
+              this.parentElement.innerHTML='<span class=\\'emoji-preview\\'>${escapeHtml(emoji)}</span>';
+            "
+          >
+
+        `;
+
+        return;
+
+      }
+
+
+      preview.innerHTML = `
+
+        <span class="emoji-preview">
+          ${escapeHtml(emoji)}
+        </span>
+
+      `;
+
+    }
+
+
+    /* ============================================================
+       STORE EDITOR
+       ============================================================ */
+
+    function openStoreEditor() {
+
+      document.getElementById(
+        'productEditor'
+      ).classList.add(
+        'hidden'
+      );
+
+
+      const form =
+        document.getElementById(
+          'storeEditor'
+        );
+
+
+      form.classList.remove(
+        'hidden'
+      );
+
+
+      document.getElementById(
+        'editAnnouncement'
+      ).value =
+        storefront.announcement;
+
+
+      document.getElementById(
+        'editLocation'
+      ).value =
+        storefront.location;
+
+
+      document.getElementById(
+        'editArea'
+      ).value =
+        storefront.area;
+
+
+      form.scrollIntoView({
+        behavior:'smooth',
+        block:'start'
+      });
+
+    }
+
+
+    /* ============================================================
+       EVENT DELEGATION
+       ============================================================ */
+
+    document.addEventListener(
+      'click',
+      event => {
+
+        const navButton =
+          event.target.closest(
+            '[data-nav]'
+          );
+
+
+        if (navButton) {
+
+          event.preventDefault();
+
+          nav(
+            navButton.dataset.nav
+          );
+
+          return;
+
+        }
+
+
+        const chip =
+          event.target.closest(
+            '[data-category]'
+          );
+
+
+        if (chip) {
+
+          activeCategory =
+            chip.dataset.category;
+
+          renderChips();
+
+          renderProducts();
+
+          return;
+
+        }
+
+
+        const request =
+          event.target.closest(
+            '.request-item'
+          );
+
+
+        if (request) {
+
+          requestItem(
+            request.dataset.id
+          );
+
+          return;
+
+        }
+
+
+        if (
+          event.target.closest(
+            '#openAdmin'
+          ) ||
+          event.target.closest(
+            '#footerAdmin'
+          )
+        ) {
+
+          document
+            .getElementById(
+              'adminDialog'
+            )
+            .showModal();
+
+          return;
+
+        }
+
+
+        if (
+          event.target.closest(
+            '#newProduct'
+          )
+        ) {
+
+          openEditor(
+            null
+          );
+
+          return;
+
+        }
+
+
+        if (
+          event.target.closest(
+            '#editStore'
+          )
+        ) {
+
+          openStoreEditor();
+
+          return;
+
+        }
+
+
+        if (
+          event.target.closest(
+            '#exitAdmin'
+          )
+        ) {
+
+          admin = false;
+
+          document.body.classList.remove(
+            'admin-mode'
+          );
+
+          document.getElementById(
+            'productEditor'
+          ).classList.add(
+            'hidden'
+          );
+
+          document.getElementById(
+            'storeEditor'
+          ).classList.add(
+            'hidden'
+          );
+
+          nav('drops');
+
+          toast(
+            'Admin workspace closed'
+          );
+
+          return;
+
+        }
+
+
+        const edit =
+          event.target.closest(
+            '.edit-product'
+          );
+
+
+        if (edit) {
+
+          const product =
+            products.find(
+              product =>
+                product.id ===
+                edit.dataset.id
+            );
+
+
+          if (product) {
+
+            openEditor(
+              product
+            );
+
+          }
+
+          return;
+
+        }
+
+
+        const remove =
+          event.target.closest(
+            '.remove-product'
+          );
+
+
+        if (remove) {
+
+          pendingDeleteId =
+            remove.dataset.id;
+
+
+          document
+            .getElementById(
+              'deleteDialog'
+            )
+            .showModal();
+
+        }
+
+      }
+    );
+
+
+    /* ============================================================
+       ADMIN LOGIN
+       ============================================================ */
+
+    document
+      .getElementById(
+        'adminLogin'
+      )
+      .addEventListener(
+        'submit',
+        event => {
+
+          event.preventDefault();
+
+
+          const input =
+            document.getElementById(
+              'adminPassword'
+            );
+
+
+          if (
+            input.value ===
+            ADMIN_PASSWORD
+          ) {
+
+            admin = true;
+
+            input.value = '';
+
+
+            document
+              .getElementById(
+                'loginError'
+              )
+              .classList.add(
+                'hidden'
+              );
+
+
+            document
+              .getElementById(
+                'adminDialog'
+              )
+              .close();
+
+
+            nav('settings');
+
+            renderAdmin();
+
+
+            toast(
+              'Admin workspace unlocked'
+            );
+
+          } else {
+
+            document
+              .getElementById(
+                'loginError'
+              )
+              .classList.remove(
+                'hidden'
+              );
+
+            input.select();
+
+          }
+
+        }
+      );
+
+
+    document.getElementById(
+      'cancelAdmin'
+    ).onclick = () => {
+
+      document
+        .getElementById(
+          'adminDialog'
+        )
+        .close();
+
+    };
+
+
+    /* ============================================================
+       PRODUCT EDITOR SUBMIT
+       ============================================================ */
+
+    document
+      .getElementById(
+        'productEditor'
+      )
+      .addEventListener(
+        'submit',
+        async event => {
+
+          event.preventDefault();
+
+
+          const button =
+            event.target.querySelector(
+              'button[type="submit"]'
+            );
+
+
+          button.disabled = true;
+
+          button.textContent =
+            'Saving…';
+
+
+          try {
+
+            const id =
+              document.getElementById(
+                'editingId'
+              ).value.trim();
+
+
+            const category =
+              document.getElementById(
+                'editCategory'
+              ).value;
+
+
+            const imageMode =
+              document.querySelector(
+                'input[name="imageMode"]:checked'
+              )?.value ||
+              'emoji';
+
+
+            const imageUrl =
+              imageMode === 'url'
+                ? document
+                    .getElementById(
+                      'editImageUrl'
+                    )
+                    .value
+                    .trim()
+                : null;
+
+
+            const product = {
+
+              id:
+                id ||
+                `item-${Date.now()}`,
+
+              name:
+                document
+                  .getElementById(
+                    'editName'
+                  )
+                  .value
+                  .trim(),
+
+              price:
+                document
+                  .getElementById(
+                    'editPrice'
+                  )
+                  .value
+                  .trim(),
+
+              category,
+
+              emoji:
+                document
+                  .getElementById(
+                    'editEmoji'
+                  )
+                  .value
+                  .trim() ||
+                emojiForCategory(
+                  category
+                ),
+
+              image_url:
+                imageUrl,
+
+              badge:
+                document
+                  .getElementById(
+                    'editBadge'
+                  )
+                  .value
+                  .trim(),
+
+              stock:
+                document
+                  .getElementById(
+                    'editStock'
+                  )
+                  .value,
+
+              specs:
+                document
+                  .getElementById(
+                    'editSpecs'
+                  )
+                  .value
+                  .trim(),
+
+              sort_order:
+                id
+                  ? (
+                      products.find(
+                        item =>
+                          item.id === id
+                      )?.sort_order ??
+                      products.length + 1
+                    )
+                  : products.length + 1
+
+            };
+
+
+            const saved =
+              await saveProduct(
+                product
+              );
+
+
+            products =
+              id
+                ? products.map(
+                    item =>
+                      item.id === id
+                        ? saved
+                        : item
+                  )
+                : [
+                    saved,
+                    ...products
+                  ];
+
+
+            event.target.classList.add(
+              'hidden'
+            );
+
+
+            render();
+
+
+            showSavePopup(
+              id
+                ? 'Inventory updated'
+                : 'Inventory added',
+              'The change is now live for everyone.'
+            );
+
+
+            toast(
+              'Saved to Supabase'
+            );
+
+          } catch (error) {
+
+            console.error(error);
+
+            alert(
+              'Could not save this item. Check your Supabase table and RLS policies.'
+            );
+
+          } finally {
+
+            button.disabled = false;
+
+            button.textContent =
+              'Save inventory';
+
+          }
+
+        }
+      );
+
+
+    /* ============================================================
+       CANCEL PRODUCT EDIT
+       ============================================================ */
+
+    document.getElementById(
+      'cancelEdit'
+    ).onclick = () => {
+
+      document
+        .getElementById(
+          'productEditor'
+        )
+        .classList.add(
+          'hidden'
+        );
+
+    };
+
+
+    /* ============================================================
+       DELETE CONFIRMATION
+       ============================================================ */
+
+    document.getElementById(
+      'cancelDelete'
+    ).onclick = () => {
+
+      pendingDeleteId =
+        null;
+
+      document
+        .getElementById(
+          'deleteDialog'
+        )
+        .close();
+
+    };
+
+
+    document.getElementById(
+      'confirmDelete'
+    ).onclick = async () => {
+
+      if (!pendingDeleteId) {
+        return;
+      }
+
+
+      const id =
+        pendingDeleteId;
+
+
+      const button =
+        document.getElementById(
+          'confirmDelete'
+        );
+
+
+      button.disabled = true;
+
+      button.textContent =
+        'Deleting…';
+
+
+      try {
+
+        await deleteProduct(
+          id
+        );
+
+
+        products =
+          products.filter(
+            product =>
+              product.id !== id
+          );
+
+
+        pendingDeleteId =
+          null;
+
+
+        document
+          .getElementById(
+            'deleteDialog'
+          )
+          .close();
+
+
+        render();
+
+
+        showSavePopup(
+          'Item deleted',
+          'The item has been removed from Drops.'
+        );
+
+
+      } catch (error) {
+
+        console.error(error);
+
+        alert(
+          'Could not delete the item.'
+        );
+
+      } finally {
+
+        button.disabled = false;
+
+        button.textContent =
+          'Delete item';
+
+      }
+
+    };
+
+
+    /* ============================================================
+       STOREFRONT EDITOR SUBMIT
+       ============================================================ */
+
+    document
+      .getElementById(
+        'storeEditor'
+      )
+      .addEventListener(
+        'submit',
+        async event => {
+
+          event.preventDefault();
+
+
+          const button =
+            event.target.querySelector(
+              'button[type="submit"]'
+            );
+
+
+          button.disabled = true;
+
+          button.textContent =
+            'Saving…';
+
+
+          try {
+
+            storefront = {
+
+              announcement:
+                document
+                  .getElementById(
+                    'editAnnouncement'
+                  )
+                  .value
+                  .trim(),
+
+              location:
+                document
+                  .getElementById(
+                    'editLocation'
+                  )
+                  .value
+                  .trim(),
+
+              area:
+                document
+                  .getElementById(
+                    'editArea'
+                  )
+                  .value
+                  .trim()
+
+            };
+
+
+            await saveStorefront();
+
+
+            event.target.classList.add(
+              'hidden'
+            );
+
+
+            render();
+
+
+            showSavePopup(
+              'Storefront saved',
+              'Your banner and service details are now live.'
+            );
+
+
+            toast(
+              'Storefront updated'
+            );
+
+          } catch (error) {
+
+            console.error(error);
+
+            alert(
+              'Could not save the storefront.'
+            );
+
+          } finally {
+
+            button.disabled = false;
+
+            button.textContent =
+              'Save storefront';
+
+          }
+
+        }
+      );
+
+
+    /* ============================================================
+       CANCEL STORE EDIT
+       ============================================================ */
+
+    document.getElementById(
+      'cancelStoreEdit'
+    ).onclick = () => {
+
+      document
+        .getElementById(
+          'storeEditor'
+        )
+        .classList.add(
+          'hidden'
+        );
+
+    };
+
+
+    /* ============================================================
+       IMAGE EDITOR EVENTS
+       ============================================================ */
+
+    document
+      .getElementById(
+        'editEmoji'
+      )
+      .addEventListener(
+        'input',
+        updateEditorPreview
+      );
+
+
+    document
+      .getElementById(
+        'editImageUrl'
+      )
+      .addEventListener(
+        'input',
+        updateEditorPreview
+      );
+
+
+    document
+      .getElementById(
+        'editCategory'
+      )
+      .addEventListener(
+        'change',
+        () => {
+
+          if (
+            !document
+              .getElementById(
+                'editEmoji'
+              )
+              .value
+              .trim()
+          ) {
+
+            document.getElementById(
+              'editEmoji'
+            ).value =
+              emojiForCategory(
+                document.getElementById(
+                  'editCategory'
+                ).value
+              );
+
+          }
+
+          updateEditorPreview();
+
+        }
+      );
+
+
+    document
+      .querySelectorAll(
+        'input[name="imageMode"]'
+      )
+      .forEach(
+        radio => {
+
+          radio.addEventListener(
+            'change',
+            updateEditorPreview
+          );
+
+        }
+      );
+
+
+    /* ============================================================
+       FORMSPREE
+       ============================================================ */
+
+    document
+      .getElementById(
+        'orderForm'
+      )
+      .addEventListener(
+        'submit',
+        async event => {
+
+          event.preventDefault();
+
+
+          const form =
+            event.currentTarget;
+
+
+          const submitButton =
+            form.querySelector(
+              'button[type="submit"]'
+            );
+
+
+          submitButton.disabled =
+            true;
+
+          submitButton.textContent =
+            'Sending…';
+
+
+          try {
+
+            const response =
+              await fetch(
+                form.action,
+                {
+                  method:'POST',
+
+                  body:
+                    new FormData(
+                      form
+                    ),
+
+                  headers:{
+                    Accept:
+                      'application/json'
+                  }
+                }
+              );
+
+
+            if (!response.ok) {
+
+              throw new Error(
+                'Formspree request failed'
+              );
+
+            }
+
+
+            document.getElementById(
+              'messageTitle'
+            ).textContent =
+              'Request received';
+
+
+            document.getElementById(
+              'messageText'
+            ).textContent =
+              'Thanks — your request was sent to the TechDrop team. We’ll confirm availability, pricing, and drop-off details directly.';
+
+
+            document
+              .getElementById(
+                'messageDialog'
+              )
+              .showModal();
+
+
+            form.reset();
+
+
+          } catch (error) {
+
+            console.error(error);
+
+
+            document.getElementById(
+              'messageTitle'
+            ).textContent =
+              'Could not send request';
+
+
+            document.getElementById(
+              'messageText'
+            ).textContent =
+              'Please try again in a moment or contact TechDrop directly.';
+
+
+            document
+              .getElementById(
+                'messageDialog'
+              )
+              .showModal();
+
+          } finally {
+
+            submitButton.disabled =
+              false;
+
+            submitButton.textContent =
+              'Send request';
+
+          }
+
+        }
+      );
+
+
+    /* ============================================================
+       CLOSE MESSAGE
+       ============================================================ */
+
+    document.getElementById(
+      'closeMessage'
+    ).onclick = () => {
+
+      document
+        .getElementById(
+          'messageDialog'
+        )
+        .close();
+
+    };
+
+
+    /* ============================================================
+       INTERSECTION OBSERVER
+       ============================================================ */
+
+    const sectionObserver =
+      new IntersectionObserver(
+        entries => {
+
+          const visible =
+            entries
+              .filter(
+                entry =>
+                  entry.isIntersecting
+              )
+              .sort(
+                (a,b) =>
+                  b.intersectionRatio -
+                  a.intersectionRatio
+              )[0];
+
+
+          if (visible) {
+
+            document
+              .querySelectorAll(
+                '[data-nav]'
+              )
+              .forEach(
+                element => {
+
+                  element.classList.toggle(
+                    'active',
+                    element.dataset.nav ===
+                      visible.target.id
+                  );
+
+                }
+              );
+
+          }
+
+        },
+        {
+          rootMargin:
+            '-25% 0px -58% 0px',
+
+          threshold:[
+            .05,
+            .25,
+            .5
+          ]
+
+        }
+      );
+
+
+    document
+      .querySelectorAll(
+        '.view'
+      )
+      .forEach(
+        section =>
+          sectionObserver.observe(
+            section
+          )
+      );
+
+
+    /* ============================================================
+       REALTIME
+       ============================================================ */
+
+    const realtimeChannel =
+      db
+        .channel(
+          'techdrop-live-storefront'
+        )
+
+
+        .on(
+          'postgres_changes',
+          {
+            event:'*',
+            schema:'public',
+            table:'techdrop_products'
+          },
+          async payload => {
+
+            console.log(
+              'Product change:',
+              payload
+            );
+
+
+            await loadProducts();
+
+
+            render();
+
+
+            if (!admin) {
+
+              toast(
+                'Inventory updated'
+              );
+
+            }
+
+          }
+        )
+
+
+        .on(
+          'postgres_changes',
+          {
+            event:'*',
+            schema:'public',
+            table:'techdrop_storefront'
+          },
+          async payload => {
+
+            console.log(
+              'Storefront change:',
+              payload
+            );
+
+
+            await loadStorefront();
+
+
+            render();
+
+
+            if (!admin) {
+
+              toast(
+                'Storefront updated'
+              );
+
+            }
+
+          }
+        )
+
+
+        .subscribe(
+          status => {
+
+            console.log(
+              'Realtime status:',
+              status
+            );
+
+
+            if (
+              status ===
+              'SUBSCRIBED'
+            ) {
+
+              setSyncStatus(
+                true,
+                'Live'
+              );
+
+            }
+
+
+            if (
+              status ===
+              'CHANNEL_ERROR' ||
+              status ===
+              'TIMED_OUT'
+            ) {
+
+              setSyncStatus(
+                false,
+                'Reconnecting'
+              );
+
+            }
+
+          }
+        );
+
+
+    /* ============================================================
+       START APP
+       ============================================================ */
+
+    loadEverything();
+
+  </script>
+
+</body>
+</html>
